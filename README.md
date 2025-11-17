@@ -125,29 +125,58 @@ Since we are just analysing commit messages, there are several drawbacks:
 ## Task 3: Coupling Analysis
 
 ### Approach & Design Decisions
+- I decided to use Pydriller to analyse the commits of the repository.
+- I cloned the repo locally and then did git checkout v4.57.0 to have the correct version.
+  - I then wrote a setup.sh script put the path into the environment and source the venv.
+- I removed non-python files and `__init__.py` files from the analysis since they do not contribute to logical coupling in a meaningful way for this task.
+
 
 
 ### Calculate the logical coupling for each file pair in the repository. Visualize the 10 most coupled file pairs using a visualization of your choice that effectively conveys the coupling relationships. Select one of these 10 most coupled file pairs and comment on their relationship.
 
-**Top coupled pairs:**
-[]
+**Visualization of top 10 coupled pairs:**
 
-**Selected Pair Analysis**: 
-- **File 1**: 
-- **File 2**:
+![top 10 coupled pairs](TASK3_logical_coupling.png)
 
-**Comment on their relationship**:
+**Analysis of clustered files:**
+- *src/transformers/models/auto/tokenization_auto.py*
+- *src/transformers/utils/dummy_pt_objects.py*
+- *src/transformers/models/auto/modeling_auto.py*
+- *src/transformers/models/auto/configuration_auto.py*
 
+All files except for the *dummy_pt_objects.py* seem to be part of a larger `auto` module 
+that handles automatic configurations, tokenizations, and modeling within the Transformers library. 
+For this reason, when changes are made to one of these files, it is likely that corresponding changes need to be made in the others
+to ensure compatibility and proper functionality across the module.
+
+The *dummy_pt_objects.py* file likely contains placeholder or mock objects used for testing or development purposes within the same context.
+So when the auto module files are modified, the dummy objects must also be update to ensure they remain compatible with the latest changes.
+
+Overall, the coupling observed here is expected among the different auto components,
+since changes in the automatic model-loading pipeline naturally affect the stages before and after it.
+The coupling with dummy_pt_objects.py suggests that updates to the auto module often require adjustments in parts that rely on its interfaces.
+This may indicate that the interface for the auto module is not fully consistent, 
+a more stable and clearly defined interface could reduce the need to update dummy objects whenever internal changes occur.
 
 ### Repeat the steps of the bullet point above, but consider only file pairs where the one file is a Python test file, i.e., starts with “test ”, and the other is a Python non-test file. How would you explain this type of coupling? Is it a code smell that requires attention and signals potential refactoring opportunities or is it something different?
+![top 10 test coupled pairs](TASK3_test_logical_coupling.png)
 
-
-**Top coupled pairs:**
-[]
 
 **Selected Pair Analysis**: 
-- **File 1**:
-- **File 2**:
+- *tests/test_modeling_common.py*
+- *src/transformers/generation/utils.py*
+
+The file *test_modeling_common.py* is likely a shared testing module used across multiple model implementations.
+Because it contains common test logic for validating model behavior, it is unsurprising that it frequently changes together with files such as *modeling_utils.py*, *modeling_llama.py* and *modeling_auto.py*.
+All of these liekly belong to the modeling subsystem, so shared tests naturally evolve alongside the underlying model classes they verify.
+
+What stands out, however, is the relatively strong coupling between *test_modeling_common.py* and *utils.py*.
+The *utils.py* file appears to serve as a general-purpose helper module for generation purposes.
+Since a dedicated test file (*test_utils.py*) already exists, strong coupling between modeling tests and general utilities is unexpected.
+
+This correlation may indicate that *utils.py* contains functionality that goes beyond what should belong in a generic utility file.
+Some of its logic might be more appropriately placed in *modeling_utils.py* or another modeling-specific module.
+Alternatively, it may be that *test_modeling_common.py* is testing behavior that reaches into non-modeling code, potentially signaling that the test suite is too broad in scope.
 
 
 **Explanation of this Coupling**: 
