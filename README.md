@@ -14,6 +14,11 @@
   # source .venv/bin/activate  # macOS/Linux
   pip install -r requirements.txt
   ```
+- **Runing:**
+  ```bash
+  source setup.sh  # macOS/Linux
+  jupyter notebook 
+  ```
 
 ---
 
