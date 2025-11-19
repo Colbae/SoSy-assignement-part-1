@@ -128,7 +128,29 @@ From this scatter plot but also other plots that i did as part of the exploratio
 
 ###  A colleague of yours claims that “Files with higher complexity tend to be more defective”. What evidence can you present to support or reject this claim for the selected complexity measures in this repository?
 
-So if I chose some of the other measures such as number of code changes I would have a much easier time coming up with evidence to support this claim. With LoC and CC the general correlation that files become more complex as they get longer can still provide a little bit of weak evidence to support the claim, if we combine it with the general wisdom statement that longer files are more defective because they have more lines of code meaning more places a mistake could have happened. So yeah there is weak evidence to support the statement that higher complexity tends to lead to more defects because those files are larger in general. With the lines of code changed mesaure we could likely provide even better evidence for this.
+By comparing the the Top 20 most defect files from Task 1: 
+ [('src\\transformers\\modeling_utils.py', 367), ('src\\transformers\\__init__.py', 314), ('src\\transformers\\trainer.py', 302), ('docs\\source\\en\\_toctree.yml', 284), ('src\\transformers\\models\\auto\\modeling_auto.py', 260), ('tests\\test_modeling_common.py', 255), ('src\\transformers\\models\\auto\\configuration_auto.py', 246), ('src\\transformers\\generation\\utils.py', 217), ('src\\transformers\\utils\\dummy_pt_objects.py', 209), ('src\\transformers\\models\\__init__.py', 205), ('src\\transformers\\utils\\import_utils.py', 166), ('docs\\source\\ko\\_toctree.yml', 166), ('tests\\generation\\test_utils.py', 157), ('src\\transformers\\models\\llama\\modeling_llama.py', 150), ('src\\transformers\\training_args.py', 149), ('src\\transformers\\models\\auto\\tokenization_auto.py', 146), ('src\\transformers\\testing_utils.py', 146), (None, 142), ('src\\transformers\\models\\auto\\image_processing_auto.py', 138), ('docs\\source\\en\\index.md', 132)]
+
+ To the top 20 files with most CC and most LOC (see above) we can see that there is a clear overlap: 
+ Top 20 CC (Cyclomatic Complexity) compared with Top 20 Defects
+- modeling_utils.py (CC rank #2, Defects rank #1 with 367 defects)
+- trainer.py (CC rank #1, Defects rank #3 with 302 defects)
+- test_modeling_common.py (CC rank #3, Defects rank #6 with 255 defects)
+- utils.py (CC rank #7, Defects rank #8 with 217 defects)
+- testing_utils.py (CC rank #12, Defects rank #17 with 146 defects)
+- test_utils.py (CC rank #19, Defects rank #13 with 157 defects)
+- import_utils.py (CC rank #20, Defects rank #11 with 166 defects)
+
+Top 20 LoC (Lines of Code) compared with Top 20 Defects
+- modeling_utils.py (LoC rank #2, Defects rank #1 with 367 defects)
+- trainer.py (LoC rank #3, Defects rank #3 with 302 defects)
+- test_modeling_common.py (LoC rank #6, Defects rank #6 with 255 defects)
+- testing_utils.py (LoC rank #10, Defects rank #17 with 146 defects)
+- utils.py (LoC rank #14, Defects rank #8 with 217 defects)
+- test_utils.py (LoC rank #4, Defects rank #13 with 157 defects)
+
+There is a 7 out of 20 files (35%) overlap between top 20 defect files and top 20 most CC files and a  6 out of 20 files (30%) overlap between top 20 defect files and top 20 most LOC files. 
+We can see that there is a clear correlation between files having a high CC/ LOC and also having a lot of defects. So the colleagues claim is correct and the evidence above supports this. 
 
 
 ## Task 3: Coupling Analysis
@@ -189,9 +211,10 @@ So if I chose some of the other measures such as number of code changes I would 
 
 
 # Comments on the use of Generative AI
-Piotr - I try to use GenAI (ChatGPT 5.1) as a tutor and a help with documentation as described in the assignment pdf. The ideas of what to make, and how to change it are entirely my own. I use GenAI to for instance give me an example scatter plot so that I know what general commands are used to make one in matplotlib. I find using this tool is much quicker than having to sort though many pages of library docs (which in my opinion are now only relevant for very specific issues). In general I try to adapt very general examples into specific code that is my implementation. In terms of thinking and strategic decision making of for instance how to group files or what plots to use that is entirely my own. In terms of troubleshooting in general I find GenAI to be extremely useful for that but in this assignment I had very little bugs due to just working with a basic df and basic graphs so i didn't do much error analysis with GenAI.
+## Piotr 
+I try to use GenAI (ChatGPT 5.1) as a tutor and a help with documentation as described in the assignment pdf. The ideas of what to make, and how to change it are entirely my own. I use GenAI to for instance give me an example scatter plot so that I know what general commands are used to make one in matplotlib. I find using this tool is much quicker than having to sort though many pages of library docs (which in my opinion are now only relevant for very specific issues). In general I try to adapt very general examples into specific code that is my implementation. In terms of thinking and strategic decision making of for instance how to group files or what plots to use that is entirely my own. In terms of troubleshooting in general I find GenAI to be extremely useful for that but in this assignment I had very little bugs due to just working with a basic df and basic graphs so i didn't do much error analysis with GenAI.
 
-# Prompt used:
+**Prompts used**:
 give me a quick crash course on how to use cc_visit on a repo
 show me how to use radon to calculate code complexities
 how to append new row to pandas df
@@ -201,3 +224,11 @@ how to group data from dataframe by column
 when doing group data from dataframe by column how to make a new column that shows how many rows went into the gorup
 create cheat sheet for making scatter plots in plt
 how to make legend appear outside of plt graph
+
+## Noah
+I used AI to help me better understand the tools I am using.
+
+**Prompts used**:
+- Help me understand the pydriller python library. Explain what it does. Explain its most used functionality. Explain how to use it. Give a comprehensive example with the most used functionalities of that library.
+- Explain how do use git to mine commit messages. Explain how to use git to count commit messages. Explain how to look for specific keywords. 
+- Help me understand matplotlib. Explain the most common used functionality. Explain how to create a basic chart. Give a comprehensive example with the most used functionalities of that library.
