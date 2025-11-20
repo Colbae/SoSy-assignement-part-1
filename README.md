@@ -16,7 +16,7 @@
   ```
 - **Runing:**
   ```bash
-  source setup.sh  # macOS/Linux, for Windows run in the WSL
+  source setup.sh  # macOS/Linux, for Windows run in the WSL or run 'setup.bat'
   jupyter notebook 
   ```
 
