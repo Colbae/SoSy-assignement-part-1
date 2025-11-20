@@ -102,8 +102,8 @@ Since we are just analysing commit messages, there are several drawbacks:
 ## Task 2: Complexity Analysis
 
 ### Selected Complexity Metrics
-1. **[Metric 1 ]**: 
-2. **[Metric 2 ]**: 
+1. **[Metric 1 ]**: Cyclomatic Complexity (CC)
+2. **[Metric 2 ]**: Lines of Code (LoC)
 
 ### Approach & Design Decisions
 
@@ -111,11 +111,47 @@ Since we are just analysing commit messages, there are several drawbacks:
 
 ### Visualize the complexity hotspots. The visualization should effectively convey which parts of the code are more complex or change more frequently. Feel free to use any visualization of your choice and explain the rationale behind your decision.
 
+I started by making two basic bar charts of the most complex files, one for each complexity metric. This shows how much more complex the top files are from the average file and thus more likely to cause issues. The black line shows the complexity of the average file and we see that the top files are orders of magnitude more complex than that. However, using the file names doesn't give a good snapshot of the whole picture as a visualization should. This kind of graph might as well be a list. For this reason I decided to experiment with grouping the files in certain ways to get a more intuitive and accurate snapshot of where the complexity lies when looking at the repository as a whole. In my opinion grouping the files correctly would lead to the most effective visualization of where the files in the repository are the most complex.
+
+CC ![alt text](TASK2_top20CC.png)
+LoC ![alt text](TASK2_top20LoC.png)
+
+Final Visualztion:
+As such I experimented with a couple of different groupings. Ideally a repo owner of somebody with knowledge about how to categorize each part of the repo would come in and label each part as its own little universe. I had to approach this from a more programatic perspective and experiemented with visualizing the individual file outliers on a scatter which contained too much information and not enough holistic information. For this reason I decided to try to group the files as best as I could and importantly analyze averages, in order to not skew the results to bigger / mroe varied folders. I grouped the files by parent folder name, parent folder path, parent of parent folder path and parent of parent folder name string matching. The parent folder path gave the best mix of general information which is able to the most insight into the question which part of the code is most complex. Furthermore, I made the dots of the folders with more files larger giving the viewer an indea of the scale of the problem. In this way the viewer can look at the outliers such as the qwen2_5_omni folder and see that its the most complex, however its unlikely to give the developers the biggest headace as its only got a couple of files. Meanwhile the src/transformers fodler is very complex but also contains a lot of files meaning that it can be seen as the one liekely to cause problems in the future. As such I think the combination of the two axis and the size dimension gives the viewer the most information to interpret.
+
+Scatter Plot ![alt text](Task2_top20_folders.png)
+
 
 ### What can you say about the correlation between the two complexity measures in this repository? For example, if you selected CC and LoC, what can you say for the statement “Files with more lines of code tend to have higher cyclomatic complexity”?
 
+From this scatter plot but also other plots that i did as part of the exploration it is obvious that the files that have more lines of code have higher cyclomatic complexity. There is a strong positive correliation between CC and LoC.
 
----
+###  A colleague of yours claims that “Files with higher complexity tend to be more defective”. What evidence can you present to support or reject this claim for the selected complexity measures in this repository?
+
+By comparing the the Top 20 most defect files from Task 1: 
+ [('src\\transformers\\modeling_utils.py', 367), ('src\\transformers\\__init__.py', 314), ('src\\transformers\\trainer.py', 302), ('docs\\source\\en\\_toctree.yml', 284), ('src\\transformers\\models\\auto\\modeling_auto.py', 260), ('tests\\test_modeling_common.py', 255), ('src\\transformers\\models\\auto\\configuration_auto.py', 246), ('src\\transformers\\generation\\utils.py', 217), ('src\\transformers\\utils\\dummy_pt_objects.py', 209), ('src\\transformers\\models\\__init__.py', 205), ('src\\transformers\\utils\\import_utils.py', 166), ('docs\\source\\ko\\_toctree.yml', 166), ('tests\\generation\\test_utils.py', 157), ('src\\transformers\\models\\llama\\modeling_llama.py', 150), ('src\\transformers\\training_args.py', 149), ('src\\transformers\\models\\auto\\tokenization_auto.py', 146), ('src\\transformers\\testing_utils.py', 146), (None, 142), ('src\\transformers\\models\\auto\\image_processing_auto.py', 138), ('docs\\source\\en\\index.md', 132)]
+
+ To the top 20 files with most CC and most LOC (see above) we can see that there is a clear overlap: 
+ Top 20 CC (Cyclomatic Complexity) compared with Top 20 Defects
+- modeling_utils.py (CC rank #2, Defects rank #1 with 367 defects)
+- trainer.py (CC rank #1, Defects rank #3 with 302 defects)
+- test_modeling_common.py (CC rank #3, Defects rank #6 with 255 defects)
+- utils.py (CC rank #7, Defects rank #8 with 217 defects)
+- testing_utils.py (CC rank #12, Defects rank #17 with 146 defects)
+- test_utils.py (CC rank #19, Defects rank #13 with 157 defects)
+- import_utils.py (CC rank #20, Defects rank #11 with 166 defects)
+
+Top 20 LoC (Lines of Code) compared with Top 20 Defects
+- modeling_utils.py (LoC rank #2, Defects rank #1 with 367 defects)
+- trainer.py (LoC rank #3, Defects rank #3 with 302 defects)
+- test_modeling_common.py (LoC rank #6, Defects rank #6 with 255 defects)
+- testing_utils.py (LoC rank #10, Defects rank #17 with 146 defects)
+- utils.py (LoC rank #14, Defects rank #8 with 217 defects)
+- test_utils.py (LoC rank #4, Defects rank #13 with 157 defects)
+
+There is a 7 out of 20 files (35%) overlap between top 20 defect files and top 20 most CC files and a  6 out of 20 files (30%) overlap between top 20 defect files and top 20 most LOC files. 
+We can see that there is a clear correlation between files having a high CC/ LOC and also having a lot of defects. So the colleagues claim is correct and the evidence above supports this. 
+
 
 ## Task 3: Coupling Analysis
 
@@ -171,4 +207,28 @@ Since we are just analysing commit messages, there are several drawbacks:
 ## Team Members
 - Noah Ziegler
 - Colin Bächtold
-- Piotrmaciej Wojtaszewski
+- Piotr Maciej Wojtaszewski
+
+
+# Comments on the use of Generative AI
+## Piotr 
+I try to use GenAI (ChatGPT 5.1) as a tutor and a help with documentation as described in the assignment pdf. The ideas of what to make, and how to change it are entirely my own. I use GenAI to for instance give me an example scatter plot so that I know what general commands are used to make one in matplotlib. I find using this tool is much quicker than having to sort though many pages of library docs (which in my opinion are now only relevant for very specific issues). In general I try to adapt very general examples into specific code that is my implementation. In terms of thinking and strategic decision making of for instance how to group files or what plots to use that is entirely my own. In terms of troubleshooting in general I find GenAI to be extremely useful for that but in this assignment I had very little bugs due to just working with a basic df and basic graphs so i didn't do much error analysis with GenAI.
+
+**Prompts used**:
+give me a quick crash course on how to use cc_visit on a repo
+show me how to use radon to calculate code complexities
+how to append new row to pandas df
+how to get filename using path
+how to make horizontal bar chart in plt
+how to group data from dataframe by column
+when doing group data from dataframe by column how to make a new column that shows how many rows went into the gorup
+create cheat sheet for making scatter plots in plt
+how to make legend appear outside of plt graph
+
+## Noah
+I used AI to help me better understand the tools I am using.
+
+**Prompts used**:
+- Help me understand the pydriller python library. Explain what it does. Explain its most used functionality. Explain how to use it. Give a comprehensive example with the most used functionalities of that library.
+- Explain how do use git to mine commit messages. Explain how to use git to count commit messages. Explain how to look for specific keywords. 
+- Help me understand matplotlib. Explain the most common used functionality. Explain how to create a basic chart. Give a comprehensive example with the most used functionalities of that library.
