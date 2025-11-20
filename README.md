@@ -14,6 +14,11 @@
   # source .venv/bin/activate  # macOS/Linux
   pip install -r requirements.txt
   ```
+- **Runing:**
+  ```bash
+  source setup.sh  # macOS/Linux, for Windows run in the WSL or run 'setup.bat'
+  jupyter notebook 
+  ```
 
 ---
 
@@ -156,52 +161,130 @@ We can see that there is a clear correlation between files having a high CC/ LOC
 ## Task 3: Coupling Analysis
 
 ### Approach & Design Decisions
+- I decided to use Pydriller to analyse the commits of the repository.
+- I cloned the repo locally and then did git checkout v4.57.0 to have the correct version.
+  - I then wrote a setup.sh script put the path into the environment and source the venv.
+- I removed non-python files and `__init__.py` files from the analysis since they do not contribute to logical coupling in a meaningful way for this task.
 
 
-### Calculate the logical coupling for each file pair in the repository. Visualize the 10 most coupled file pairs using a visualization of your choice that effectively conveys the coupling relationships. Select one of these 10 most coupled file pairs and comment on their relationship.
 
-**Top coupled pairs:**
-[]
+### Calculate the logical coupling for each file pair in the repository and visualize the top 10 most strongly coupled file pairs.
+
+**Visualization of top 10 coupled pairs:**
+
+![top 10 coupled pairs](TASK3_logical_coupling.png)
+
+### Select a pair of the top 10 most strongly coupled file pairs and analyze why they are coupled.
+
+**Analysis of clustered files:**
+- *src/transformers/models/auto/tokenization_auto.py*
+- *src/transformers/utils/dummy_pt_objects.py*
+- *src/transformers/models/auto/modeling_auto.py*
+- *src/transformers/models/auto/configuration_auto.py*
+
+All files except for the *dummy_pt_objects.py* seem to be part of a larger `auto` module 
+that handles automatic configurations, tokenizations, and modeling within the Transformers library. 
+For this reason, when changes are made to one of these files, it is likely that corresponding changes need to be made in the others
+to ensure compatibility and proper functionality across the module.
+
+The *dummy_pt_objects.py* file likely contains placeholder or mock objects used for testing or development purposes within the same context.
+So when the auto module files are modified, the dummy objects must also be update to ensure they remain compatible with the latest changes.
+
+Overall, the coupling observed here is expected among the different auto components,
+since changes in the automatic model-loading pipeline naturally affect the stages before and after it.
+The coupling with dummy_pt_objects.py suggests that updates to the auto module often require adjustments in parts that rely on its interfaces.
+This may indicate that the interface for the auto module is not fully consistent, 
+a more stable and clearly defined interface could reduce the need to update dummy objects whenever internal changes occur.
+
+### Calculate the logical coupling for file pairs including a source file and a test file in the repository and visualize the top 10 most strongly coupled file pairs.
+
+**Visualization of top 10 coupled pairs:**
+
+![top 10 test coupled pairs](TASK3_test_logical_coupling.png)
+
+### Select a pair of the top 10 most strongly coupled file pairs and analyze why they are coupled.
 
 **Selected Pair Analysis**: 
-- **File 1**: 
-- **File 2**:
+- *tests/test_modeling_common.py*
+- *src/transformers/generation/utils.py*
 
-**Comment on their relationship**:
+The file *test_modeling_common.py* is likely a shared testing module used across multiple model implementations.
+Because it contains common test logic for validating model behavior, it is unsurprising that it frequently changes together with files such as *modeling_utils.py*, *modeling_llama.py* and *modeling_auto.py*.
+All of these liekly belong to the modeling subsystem, so shared tests naturally evolve alongside the underlying model classes they verify.
 
+What stands out, however, is the relatively strong coupling between *test_modeling_common.py* and *utils.py*.
+The *utils.py* file appears to serve as a general-purpose helper module for generation purposes.
+Since a dedicated test file (*test_utils.py*) already exists, strong coupling between modeling tests and general utilities is unexpected.
 
-### Repeat the steps of the bullet point above, but consider only file pairs where the one file is a Python test file, i.e., starts with “test ”, and the other is a Python non-test file. How would you explain this type of coupling? Is it a code smell that requires attention and signals potential refactoring opportunities or is it something different?
+This correlation may indicate that *utils.py* contains functionality that goes beyond what should belong in a generic utility file.
+Some of its logic might be more appropriately placed in *modeling_utils.py* or another modeling-specific module.
+Alternatively, it may be that *test_modeling_common.py* is testing behavior that reaches into non-modeling code, potentially signaling that the test suite is too broad in scope.
 
+### Propose three different strategies for selecting the most “related” test file for a given source file in the Transformers repository.
 
-**Top coupled pairs:**
-[]
+#### Strategy 1: Matching based on project structure:
 
-**Selected Pair Analysis**: 
-- **File 1**:
-- **File 2**:
+This strategy relies on the assumption that the project is organized in the conventional manner.
+Meaning that the actual programm code is in a `src/transformers/` directory and the tests are in a parallel `tests` directory.
+The structure within in these directories should mirror each other.
 
+When this assumption holds, retrieving the test file of a given source file becomes straightforward. 
+By simply replacing the `src/transformers/` prefix with `tests/` and prepending `test_` to the filename, the corresponding test file can be found.
 
-**Explanation of this Coupling**: 
+**Pros:**
+- Simple implementation
+- Efficient retrieval of test files
 
+**Cons:**
+- Relies on strict adherence to project structure conventions
 
+#### Strategy 2: Matching based on logical coupling:
 
-### Writing tests is a time-consuming task and developers often omit it, thus, automated test generation tools have been implemented and are widely used. One of the most popular test generation tools for Python is Pynguin, that takes as input a .py file and generates passing tests for that file. Pynguin writes the generated tests to a new file in a separate folder, isolated from the project’s test suite. Suppose that you are tasked with implementing an option for Pynguin to place the tests directly in the project’s test suite, specifically in the test file that is most closely “related” with the input .py file. Discuss at least three (3) implementations for selecting the most “related” test file given a (non-test) .py file. You do not have to implement these options at this stage.
+This strategy relies on logical coupling between the source file and test files.
+Meaning that a source file and the corresponding test file are likely to have a high degree of logical coupling.
+As such, the test file with the highest logical coupling to the given source file is likely to be the most related test file.
 
-#### Strategy 1:
+To identify the test file with the highest logical coupling, one can analyze the commit history of the repository.
+Files often changed together in the same commits are likely to be logically coupled.
+So computing the test file that was commited most frequently together with the given source file the correstponding test file can be identified.
 
+**Pros:**
+- Does not rely on project structure conventions
+- Relies on historical data to identify relationships
 
-#### Strategy 2:
+**Cons:**
+- Computationally intensive
+- Relies on clean commit history
+- May not work for young or less active repositories without sufficient commit data
 
+#### Strategy 3: Dependency based matching:
+This strategy analyzes the dependencies found within the test files.
+It relies on the assumption that test files that import functionality from a given source file are likely to be testing that functionality.
 
-#### Strategy 3:
+So by analyzing the import statements in the test files, one can identify which test files depend on the given source file.
+As such, the test file that imports that imports and makes use of various functionalities from the source file is likely the file responsible for testing it.
+
+**Pros:**
+- Directly analyzes dependencies
+- Does not rely on project structure conventions or commit history
+
+**Cons:**
+- Complex implementation
+- Test might have dependencies that aren't being tested
 
 
 ### Select two of the three test placement implementations you proposed above. Where would they place automatically-generated tests for the src/transformers/generation/utils.py file?
 
-**Using Strategy 1**: 
+**Using Strategy 1: Matching based on project structure:**
 
-**Using Strategy 2**:
+The test file that was found to be corresponding to *src/transformers/generation/utils.py* was *tests/generation/test_utils.py*.
+As such, this strategy would append the newly generated tests to this file.
 
+**Using Strategy 2: Matching based on logical coupling:**
+
+The test file that was found to be corresponding to *src/transformers/generation/utils.py* was *tests/generation/test_utils.py*.
+As such, this strategy would append the newly generated tests to this file.
+This matches the result from Strategy 1. 
 
 ---
 ## Team Members
